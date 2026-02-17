@@ -15,46 +15,42 @@ used_questions = {
     "C": []
 }
 
+def generate_question(profile: str, context: dict = None, scores: dict = None) -> str:
+    # Asegúrate de que las preguntas sean variadas
+    extra_context = ""
 
-def generate_question(profile: str) -> str:
-
-    previous = "\n".join(used_questions[profile][-5:])
-
-    for _ in range(5):
-
-        prompt = f"""
-        Eres un orientador vocacional experto en el modelo RIASEC.
-
-        El usuario ya realizó un pretest inicial que sugiere inclinación hacia el perfil {profile}.
-        Tu tarea es profundizar en ese perfil con una afirmación que explore aspectos más específicos y variados de su comportamiento.
-
-        Genera UNA afirmación corta en primera persona claramente relacionada con actividades del perfil {profile} del modelo RIASEC.
-
-        La afirmación debe:
-        - evaluar el perfil {profile}
-        - explorar situaciones reales (trabajo, estudio de colegio, hobbies, resolución de problemas, interacción social, liderazgo o creatividad)
-        - ayudar a confirmar o refinar la inclinación del usuario
-        - no repetir ideas similares a estas afirmaciones previas: {previous}
-
-        Reglas estrictas:
-        - debe ser una afirmación, no una pregunta
-        - no usar la palabra "o"
-        - usar lenguaje cotidiano
-        - escala de respuesta 1–5
-        - responder solo con la afirmación
-
+    if context:
+        extra_context = f"""
+        Contexto del pretest del usuario:
+        {context["summary"]}
         """
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.9
-        )
+    # Evitar repetir las mismas preguntas
+    previous_questions = "\n".join(used_questions[profile][-5:])
 
-        question = response.choices[0].message.content.strip()
+    prompt = f"""
+    Eres un orientador vocacional experto en RIASEC.
 
-        if question not in used_questions[profile]:
-            used_questions[profile].append(question)
-            return question
+    {extra_context}
 
-    return "Me gusta aprender cosas nuevas."
+    Genera una pregunta en forma de afirmacion interesante y diferente para el perfil {profile}, para explorar los intereses y características de la persona sin hacer referencia directa a su perfil. 
+    La pregunta debe centrarse en los intereses y motivaciones del usuario. Evita mencionar el perfil RIASEC o hacer preguntas directas sobre él.
+
+    No repitas las mismas afirmaciones. Evita repetir ideas como:
+    {previous_questions}
+
+    - afirmacion corta
+    - usa lenguaje sencillo
+    - haz la afirmacion en primera persona
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7
+    )
+
+    question = response.choices[0].message.content.strip()
+    used_questions[profile].append(question)  # Registrar la pregunta para no repetirla
+
+    return question
