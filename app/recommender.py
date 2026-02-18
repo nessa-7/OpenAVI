@@ -71,7 +71,6 @@ def recommend_programs(user_scores, programs):
 
     print("Respuesta de OpenAI:", response.choices[0].message.content)
 
-    print("Programas recibidos:", programs)
     print("User scores:", user_scores)
 
     content = response.choices[0].message.content
