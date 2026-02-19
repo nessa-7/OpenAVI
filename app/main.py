@@ -111,8 +111,7 @@ def final_result(scores: dict):
     print("Programas desde DB:", programs_from_db)
     
     return {
-        "top_profiles": formatted_profiles,
-        "recommended_programs": programs
+        "recommendations": programs
     }
 
 
